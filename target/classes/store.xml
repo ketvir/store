@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="98da9370-6f11-4587-8154-42dbeb74ce14" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<os:object-store name="ketscheme" doc:name="Object store" doc:id="eae3afe0-a535-4ace-81c7-2685e4b7f4e4" entryTtl="2" entryTtlUnit="HOURS" expirationInterval="5" config-ref="ObjectStore_Config"/>
+	<os:config name="ObjectStore_Config" doc:name="ObjectStore Config" doc:id="17d0de61-2778-44a6-9cce-e5a25fde3790" >
+		<os:connection >
+			<reconnection >
+				<reconnect />
+			</reconnection>
+		</os:connection>
+	</os:config>
+	<flow name="storeFlow" doc:id="3a6725a5-12ec-4660-9c9b-c1eb6e6091ef" >
+		<http:listener doc:name="Listener" doc:id="f0092d54-d91a-4bdb-a0a1-829979eba281" config-ref="HTTP_Listener_config" path="/store"/>
+		<logger level="INFO" doc:name="Logger" doc:id="ac69f1c7-1fe9-4606-8568-a6bf428649b2" message="#[payload]"/>
+		<os:store doc:name="Store" doc:id="b9b5a3f4-89ca-494c-a97e-ffc3ef5d2bff" key="ketvir" objectStore="ketscheme"/>
+		<logger level="INFO" doc:name="Logger" doc:id="05d11990-13cb-4cd9-b3e5-dfddfe72298f" message="#[payload]"/>
+		<os:retrieve-all-keys doc:name="Retrieve all keys" doc:id="4440b4bc-cefd-4553-a732-0127358d364e" objectStore="ketscheme"/>
+		<logger level="INFO" doc:name="Logger" doc:id="dc14654e-869f-4cfc-9a7b-c4c711b2f4ea" message="#[payload]"/>
+		<os:retrieve-all doc:name="Retrieve all" doc:id="d96401d3-2d16-4146-ad02-be7b8c8b6f65" objectStore="ketscheme"/>
+		<os:retrieve doc:name="Retrieve" doc:id="098bd203-0f49-4cb5-a524-25e17fbe1445" key="ket" objectStore="ketscheme"/>
+		<os:contains doc:name="Contains" doc:id="a8712fd9-5c48-4b3b-a4f1-7ce83b17ce02" key="ketvir" objectStore="ketscheme"/>
+		<os:remove doc:name="Remove" doc:id="7c439965-f8f9-4984-afa2-091651c3d4ed" key="ket" objectStore="ketscheme"/>
+		<os:clear doc:name="Clear" doc:id="877deb2a-0a93-4fed-b45a-85c9a7aea50e" objectStore="ketscheme"/>
+		<os:retrieve-all doc:name="Retrieve all" doc:id="64067f64-f75b-425c-bac0-fb6f33c519a1" objectStore="ketscheme"/>
+		<ee:transform doc:name="Transform Message" doc:id="52194da0-b806-461a-b3bc-98927017a689" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
